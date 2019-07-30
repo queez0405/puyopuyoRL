@@ -148,6 +148,19 @@ class ACAgent:
 		# here signs are flipped because optimizer minimizes
 		return policy_loss
 
+def reward_20means(rewards_history):
+	i = 0
+	reward_sum = 0
+	rewards_array = np.array([])
+	for j in rewards_history:
+		i += 1
+		reward_sum += j
+		if i % 20 == 0:
+			reward_sum /= 20
+	 		rewards_array = np.append(rewards_array, [reward_sum])
+	 		reward_sum = 0
+
+	return rewards_array
 
 if __name__ == '__main__':
 	logging.getLogger().setLevel(logging.INFO)

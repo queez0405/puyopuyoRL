@@ -160,13 +160,14 @@ class PPOAgent:
 
 def reward_20means(rewards_history):
 	i = 0
+	reward_sum = 0
 	rewards_array = np.array([])
 	for j in rewards_history:
-		i++
-		reward_sum += rewards_history
+		i += 1
+		reward_sum += j
 		if i % 20 == 0:
 			reward_sum /= 20
-			np.append(rewards_array, reward_sum)
+			rewards_array = np.append(rewards_array, [reward_sum])
 			reward_sum = 0
 		
 	return rewards_array
@@ -186,6 +187,8 @@ if __name__ == '__main__':
 	model = Model(num_actions=env.action_space.n)
 	agent = PPOAgent(model)
 	rewards_history = agent.train(env)
+	rewards_array = reward_20means(rewards_history)
+	pdb.set_trace()
 	epi_num = np.arange(len(rewards_history)) + 1
 	print("Finished training.")
 	#print("Total Episode Reward: %d" % agent.test(env, True))
