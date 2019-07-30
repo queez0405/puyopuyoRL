@@ -56,7 +56,8 @@ class PPOAgent:
 		self.params = {
 			'gamma': 0.99,
 			'value': 0.5,
-			'entropy': 0.0001
+			'entropy': 0.0001,
+			'lambda': 0.95
 		}
 		self.model = model
 		self.model.compile(
@@ -135,8 +136,15 @@ class PPOAgent:
 		for t in reversed(range(rewards.shape[0])):
 			returns[t] = rewards[t] + self.params['gamma'] * returns[t+1] * (1-dones[t])
 		returns = returns[:-1]
-		# advantages are returns - baseline, value estimates in our case
-		advantages = returns - values
+		# use General Advantage Estimater(GAE) instead of  returns - baseline
+		v_prime = np.delete(values, [0])
+		v_prime = np.append(v_prime, next_value)
+		delta = rewards + self.params['gamma'] * v_prime * (1-dones) - values
+		advantages = np.zeros(delta.shape[0] + 1)
+		for t in reversed(range(delta.shape[0])):
+			advantages[t] = delta[t] + self.params['gamma'] * self.params['lambda'] * advantages[t+1]
+		advantages = np.delete(advantages, [len(advantages) - 1])
+
 		return returns, advantages
     
 	def _value_loss(self, returns, value):
