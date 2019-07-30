@@ -13,6 +13,7 @@ import time
 
 from LinearRegTF2 import LinearRegression
 load_weights = False
+number_of_updates = 400000
 load_weights_update_num = 400000
 checkpoint_name = 'puyoA2C_checkpoint'
 
@@ -64,7 +65,7 @@ class A2CAgent:
 			loss=[self._logits_loss, self._value_loss]
 			)
     
-	def train(self, env, batch_sz=32, updates=load_weights_update_num):
+	def train(self, env, batch_sz=32, updates=number_of_updates):
 		# storage helpers for a single batch of data
 		actions = np.empty((batch_sz,), dtype=np.int32)
 		rewards, dones, values = np.empty((3, batch_sz))

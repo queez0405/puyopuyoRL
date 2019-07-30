@@ -13,8 +13,9 @@ import time
 
 from LinearRegTF2 import LinearRegression
 load_weights = False
+number_of_updates = 500
 load_weights_update_num = 400000
-checkpoint_name = 'puyoA2C_checkpoint'
+checkpoint_name = 'puyoPPO_checkpoint'
 
 class ProbabilityDistribution(tf.keras.Model):
 	def call(self, logits):
@@ -49,7 +50,7 @@ class Model(tf.keras.Model):
 		# action = tf.random.categorical(logits, 1)
 		return np.squeeze(action, axis=-1), np.squeeze(value, axis=-1)
 
-class A2CAgent:
+class PPOAgent:
 	def __init__(self, model):
 # hyperparameters for loss terms, gamma is the discount coefficient
 		self.params = {
@@ -64,7 +65,7 @@ class A2CAgent:
 			loss=[self._logits_loss, self._value_loss]
 			)
     
-	def train(self, env, batch_sz=32, updates=load_weights_update_num):
+	def train(self, env, batch_sz=32, updates=number_of_updates):
 		# storage helpers for a single batch of data
 		actions = np.empty((batch_sz,), dtype=np.int32)
 		rewards, dones, values = np.empty((3, batch_sz))
@@ -157,6 +158,18 @@ class A2CAgent:
 		# here signs are flipped because optimizer minimizes
 		return policy_loss - self.params['entropy']*entropy_loss
 
+def reward_20means(rewards_history):
+	i = 0
+	rewards_array = np.array([])
+	for j in rewards_history:
+		i++
+		reward_sum += rewards_history
+		if i % 20 == 0:
+			reward_sum /= 20
+			np.append(rewards_array, reward_sum)
+			reward_sum = 0
+		
+	return rewards_array
 
 if __name__ == '__main__':
 	logging.getLogger().setLevel(logging.INFO)
@@ -171,7 +184,7 @@ if __name__ == '__main__':
 	register()
 	env = gym.make('PuyoPuyoEndlessTsu-v2')
 	model = Model(num_actions=env.action_space.n)
-	agent = A2CAgent(model)
+	agent = PPOAgent(model)
 	rewards_history = agent.train(env)
 	epi_num = np.arange(len(rewards_history)) + 1
 	print("Finished training.")
@@ -186,5 +199,5 @@ if __name__ == '__main__':
 	plt.plot(epi_num, W * epi_num , c='r')
 	plt.xlabel('Episode')
 	plt.ylabel('Total Reward')
-	plt.savefig("./results/A2Cupdates_slope" + str(W.numpy()) + ".png")
+	plt.savefig("./results/PPOupdates_slope" + str(W.numpy()) + ".png")
 	plt.show()

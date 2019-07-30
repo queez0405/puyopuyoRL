@@ -13,6 +13,7 @@ import time
 
 from LinearRegTF2 import LinearRegression
 load_weights = False
+number_of_updates = 32*300000
 load_weights_update_num = 32*300000
 checkpoint_name = 'puyoAC_checkpoint'
 
@@ -63,7 +64,7 @@ class ACAgent:
 			loss=[self._logits_loss, self._value_loss]
 			)
     
-	def train(self, env, updates=load_weights_update_num):
+	def train(self, env, updates=number_of_updates):
 		observation_space1 = np.append(env.observation_space.sample()[0],env.observation_space.sample()[1])
 		# training loop: collect samples, send to optimizer, repeat updates times
 		ep_rews = [0.0]
