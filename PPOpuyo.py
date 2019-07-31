@@ -10,6 +10,8 @@ import tensorflow.keras.optimizers as ko
 
 import pdb
 import time
+from datetime import datetime
+now = datetime.now()
 
 from LinearRegTF2 import LinearRegression
 load_weights = False
@@ -143,7 +145,7 @@ class PPOAgent:
 		advantages = np.zeros(delta.shape[0] + 1)
 		for t in reversed(range(delta.shape[0])):
 			advantages[t] = delta[t] + self.params['gamma'] * self.params['lambda'] * advantages[t+1]
-		advantages = np.delete(advantages, [len(advantages) - 1])
+		advantages = advantages[:-1]
 
 		return returns, advantages
     
@@ -210,5 +212,6 @@ if __name__ == '__main__':
 	plt.plot(epi_num, W * epi_num , c='r')
 	plt.xlabel('Episode')
 	plt.ylabel('Total Reward')
-	plt.savefig("./results/PPOupdates_slope" + str(W.numpy()) + ".png")
+	#plt.savefig("./results/PPOupdates_slope" + str(W.numpy()) + ".png")
+	plt.savefig("./results/"+"PPO"+str(now.year)+str(now.month)+str(now.day)+".png")
 	plt.show()

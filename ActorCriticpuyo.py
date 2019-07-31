@@ -10,6 +10,8 @@ import tensorflow.keras.optimizers as ko
 
 import pdb
 import time
+from datetime import datetime
+now = datetime.now()
 
 from LinearRegTF2 import LinearRegression
 load_weights = False
@@ -185,4 +187,5 @@ if __name__ == '__main__':
 	plt.xlabel('Episode')
 	plt.ylabel('Total Reward')
 	#plt.savefig("./results/ACupdates_slope" + str(W.numpy()) + ".png")
+	plt.savefig("./results/"+"AC"+str(now.year)+str(now.month)+str(now.day)+".png") 
 	plt.show()
