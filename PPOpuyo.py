@@ -47,6 +47,7 @@ class Model(tf.keras.Model):
 	def action_value(self, obs):
 		# executes call() under the hood
 		logits, value = self.predict(obs)
+		pdb.set_trace()
 		action = self.dist.predict(logits)
 		# a simpler option, will become clear later why we don't use it
 		# action = tf.random.categorical(logits, 1)

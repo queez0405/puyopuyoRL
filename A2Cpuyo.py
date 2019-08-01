@@ -11,7 +11,7 @@ import tensorflow.keras.optimizers as ko
 import pdb
 import time
 from datetime import datetime
-now = datetiem.now()
+now = datetime.now()
 
 from LinearRegTF2 import LinearRegression
 load_weights = False
@@ -168,9 +168,9 @@ def reward_20means(rewards_history):
 		i += 1
 		reward_sum += j
 		if i % 20 == 0:
-		reward_sum /= 20
-		rewards_array = np.append(rewards_array, [reward_sum])
-		reward_sum = 0
+			reward_sum /= 20
+			rewards_array = np.append(rewards_array, [reward_sum])
+			reward_sum = 0
 
 	return rewards_array
 
@@ -189,17 +189,19 @@ if __name__ == '__main__':
 	model = Model(num_actions=env.action_space.n)
 	agent = A2CAgent(model)
 	rewards_history = agent.train(env)
-	epi_num = np.arange(len(rewards_history)) + 1
+	rewards_array = reward_20means(rewards_history)
+	#epi_num = np.arange(len(rewards_history)) + 1
 	print("Finished training.")
 	#print("Total Episode Reward: %d" % agent.test(env, True))
-	LinearReg = LinearRegression(epi_num, np.array(rewards_history))
+	#LinearReg = LinearRegression(epi_num, np.array(rewards_history))
 	#W, b = LinearReg.train(100000)
-	W = LinearReg.train(30000)
+	#W = LinearReg.train(30000)
 
 	plt.style.use('seaborn')
-	plt.plot(np.arange(0, len(rewards_history), 5), rewards_history[::5])
+	#plt.plot(np.arange(0, len(rewards_history), 5), rewards_history[::5])
+	plt.plot(np,arange(0,len(rewards_array)),rewards_array)
 	#plt.plot(epi_num, W * epi_num + b, c='r')
-	plt.plot(epi_num, W * epi_num , c='r')
+	#plt.plot(epi_num, W * epi_num , c='r')
 	plt.xlabel('Episode')
 	plt.ylabel('Total Reward')
 	#plt.savefig("./results/A2Cupdates_slope" + str(W.numpy()) + ".png")
