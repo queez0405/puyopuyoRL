@@ -15,7 +15,7 @@ now = datetime.now()
 
 from LinearRegTF2 import LinearRegression
 load_weights = False
-number_of_updates = 400000
+number_of_updates = 1000000
 load_weights_update_num = 400000
 checkpoint_name = 'puyoA2C_checkpoint'
 
@@ -199,7 +199,7 @@ if __name__ == '__main__':
 
 	plt.style.use('seaborn')
 	#plt.plot(np.arange(0, len(rewards_history), 5), rewards_history[::5])
-	plt.plot(np,arange(0,len(rewards_array)),rewards_array)
+	plt.plot(np.arange(0,len(rewards_array)),rewards_array)
 	#plt.plot(epi_num, W * epi_num + b, c='r')
 	#plt.plot(epi_num, W * epi_num , c='r')
 	plt.xlabel('Episode')

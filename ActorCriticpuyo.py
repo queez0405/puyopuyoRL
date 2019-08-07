@@ -15,7 +15,7 @@ now = datetime.now()
 
 from LinearRegTF2 import LinearRegression
 load_weights = False
-number_of_updates = 32*300000
+number_of_updates = 32*600000
 load_weights_update_num = 32*300000
 checkpoint_name = 'puyoAC_checkpoint'
 
