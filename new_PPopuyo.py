@@ -19,7 +19,7 @@ load_weights = False
 number_of_updates = 3000
 load_weights_update_num = 400000
 checkpoint_name = 'puyoPPO_checkpoint'
-log_path = './logs'
+log_path = './logs/PPO/' + now.strftime("%Y%m%d-%H%M%S")
 
 class ProbabilityDistribution(tf.keras.Model):
 	def call(self, logits):
@@ -109,9 +109,9 @@ class PPOAgent:
 					if ep_count % 20 == 0:					
 						tf.summary.scalar('reward',avg_reward.result(),ep_count)
 						avg_reward.reset_states()
-					ep_count += 1
 					next_obs = env.reset()
 					logging.info("Episode: %04d, Reward: %0.2f" % (ep_count, ep_rew))
+					ep_count += 1
 					ep_rew = 0
 					break
 			observations = np.array(observations)
@@ -204,10 +204,11 @@ if __name__ == '__main__':
 		except RuntimeError as e:
 			print(e)
 	'''
+	tf.summary.trace_on()
 	register()
 	env = gym.make('PuyoPuyoEndlessTsu-v2')
 	model = Model(num_actions=env.action_space.n)
 	agent = PPOAgent(model)
 	with summary_writer.as_default():
 		rewards_history = agent.train(env)
-	
+	tf.summary.trace_export('model',profiler_outdir='./logs/trace')

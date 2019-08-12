@@ -18,6 +18,7 @@ load_weights = False
 number_of_updates = 1000000
 load_weights_update_num = 400000
 checkpoint_name = 'puyoA2C_checkpoint'
+log_path = './logs/A2C/' + now.strftime("%Y%m%d-%H%M%S")
 
 class ProbabilityDistribution(tf.keras.Model):
 	def call(self, logits):
@@ -68,13 +69,15 @@ class A2CAgent:
 			)
     
 	def train(self, env, batch_sz=32, updates=number_of_updates):
+		avg_reward = tf.keras.metrics.Mean(name='reward', dtype = tf.float32)
 		# storage helpers for a single batch of data
 		actions = np.empty((batch_sz,), dtype=np.int32)
 		rewards, dones, values = np.empty((3, batch_sz))
 		observation_space1 = np.append(env.observation_space.sample()[0],env.observation_space.sample()[1])
 		observations = np.empty((batch_sz,) + observation_space1.shape)
 		# training loop: collect samples, send to optimizer, repeat updates times
-		ep_rews = [0.0]
+		ep_rew = 0
+		ep_count = 1
 		next_obs = env.reset()
 		# if saved weights exist, load weights
 		if load_weights == True:
@@ -89,11 +92,16 @@ class A2CAgent:
 				if rewards[step] == -1:
 					rewards[step] += 1
 				rewards[step] = np.log(rewards[step] + 1)
-				ep_rews[-1] += rewards[step]
+				ep_rew += rewards[step]
 				if dones[step]:
-					ep_rews.append(0.0)
+					avg_reward.update_state(ep_rew)
+					if ep_count % 20 == 0:
+						tf.summary.scalar('reward',avg_reward.result(),ep_count)
+						avg_reward.reset_states()
 					next_obs = env.reset()
-					logging.info("Episode: %04d, Reward: %0.2f" % (len(ep_rews)-1, ep_rews[-2]))
+					logging.info("Episode: %04d, Reward: %0.2f" % (ep_count, ep_rew))	
+					ep_count += 1
+					ep_rew = 0
 			next_obs = self.obs_rank_down(next_obs)
 			_, next_value = self.model.action_value(next_obs[None, :])
 			returns, advs = self._returns_advantages(rewards, dones, values, next_value)
@@ -106,7 +114,7 @@ class A2CAgent:
 			# save weights
 			if (update + 1) % 1000 == 0:
 				model.save_weights('./checkpoints/' + checkpoint_name + str(updates))
-		return ep_rews
+		return ep_rew
 
 	def test(self, env, render=False):
 		obs, done, ep_reward = env.reset(), False, 0
@@ -176,6 +184,7 @@ def reward_20means(rewards_history):
 
 if __name__ == '__main__':
 	logging.getLogger().setLevel(logging.INFO)
+	summary_writer = tf.summary.create_file_writer(log_path)
 	'''
 	gpus = tf.config.experimental.list_physical_devices('GPU')
 	if gpus:
@@ -188,22 +197,5 @@ if __name__ == '__main__':
 	env = gym.make('PuyoPuyoEndlessTsu-v2')
 	model = Model(num_actions=env.action_space.n)
 	agent = A2CAgent(model)
-	rewards_history = agent.train(env)
-	rewards_array = reward_20means(rewards_history)
-	#epi_num = np.arange(len(rewards_history)) + 1
-	print("Finished training.")
-	#print("Total Episode Reward: %d" % agent.test(env, True))
-	#LinearReg = LinearRegression(epi_num, np.array(rewards_history))
-	#W, b = LinearReg.train(100000)
-	#W = LinearReg.train(30000)
-
-	plt.style.use('seaborn')
-	#plt.plot(np.arange(0, len(rewards_history), 5), rewards_history[::5])
-	plt.plot(np.arange(0,len(rewards_array)),rewards_array)
-	#plt.plot(epi_num, W * epi_num + b, c='r')
-	#plt.plot(epi_num, W * epi_num , c='r')
-	plt.xlabel('Episode')
-	plt.ylabel('Total Reward')
-	#plt.savefig("./results/A2Cupdates_slope" + str(W.numpy()) + ".png")
-	plt.savefig("./results/"+"A2C"+str(now.year)+str(now.month)+str(now.day)+".png")
-	plt.show()
+	with summary_writer.as_default():
+		rewards_history = agent.train(env)
