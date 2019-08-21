@@ -7,7 +7,6 @@ import matplotlib.pyplot as plt
 import tensorflow.keras.layers as kl
 import tensorflow.keras.losses as kls
 import tensorflow.keras.optimizers as ko
-from tensorflow.keras import backend as K
 
 import pdb
 import time
@@ -16,7 +15,7 @@ now = datetime.now()
 
 from LinearRegTF2 import LinearRegression
 load_weights = False
-number_of_updates = 3000
+number_of_updates = 30000
 load_weights_update_num = 400000
 checkpoint_name = 'puyoPPO_checkpoint'
 log_path = './logs/PPO/' + now.strftime("%Y%m%d-%H%M%S")
@@ -64,7 +63,8 @@ class PPOAgent:
 			'gamma': 0.99,
 			'value': 0.5,
 			'eps_clip': 0.2,
-			'lambda': 0.95
+			'lambda': 0.95,
+			'entropy':0.5
 		}
 		self.model = model
 		self.model.compile(
@@ -178,7 +178,6 @@ class PPOAgent:
 		return self.params['value']*kls.mean_squared_error(returns, value)
 
 	def _logits_loss(self, acts_advs_and_probs, logits):
-		pdb.set_trace()
 		# a trick to input actions and advantages through same API
 		actions, advantages, probs = tf.split(acts_advs_and_probs, 3, axis=-1)
 		# note: we only calculate the loss on the actions we've actually taken
@@ -186,9 +185,13 @@ class PPOAgent:
 		actions = tf.one_hot(tf.squeeze(actions), self.env.action_space.n)
 		logits = tf.math.reduce_sum(tf.math.multiply(logits, actions),axis=1, keepdims=True)
 		ratio = tf.math.exp(tf.math.log(logits+1e-10) - tf.math.log(probs+1e-10))
-		surr1 = ratio * advantages
+		assert_op = tf.Assert(tf.equal(tf.reduce_max(ratio), 3), [ratio])
+		with tf.control_dependencies([assert_op]):
+			surr1 = ratio * advantages
 		surr2 = tf.clip_by_value(ratio, 1-self.params['eps_clip'], 1+self.params['eps_clip']) * advantages
-		policy_loss = -tf.math.minimum(surr1, surr2)
+		entropy_loss = kls.categorical_crossentropy(logits+1e-10, logits+1e-10)
+
+		policy_loss = -tf.math.minimum(surr1, surr2) + self.params['entropy'] * entropy_loss
 
 		# here signs are flipped because optimizer minimizes
 		return policy_loss
@@ -204,11 +207,11 @@ if __name__ == '__main__':
 		except RuntimeError as e:
 			print(e)
 	'''
-	tf.summary.trace_on()
+	tf.summary.trace_on(graph=True, profiler=False)
 	register()
 	env = gym.make('PuyoPuyoEndlessTsu-v2')
 	model = Model(num_actions=env.action_space.n)
 	agent = PPOAgent(model)
 	with summary_writer.as_default():
-		rewards_history = agent.train(env)
-	tf.summary.trace_export('model',profiler_outdir='./logs/trace')
+			rewards_history = agent.train(env)
+			tf.summary.trace_export('model', step=0, profiler_outdir="./logs/PPO/trace" + now.strftime("%Y%m%d-%H%M%S"))

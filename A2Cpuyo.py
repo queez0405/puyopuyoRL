@@ -15,7 +15,7 @@ now = datetime.now()
 
 from LinearRegTF2 import LinearRegression
 load_weights = False
-number_of_updates = 1000000
+number_of_updates = 2000000
 load_weights_update_num = 400000
 checkpoint_name = 'puyoA2C_checkpoint'
 log_path = './logs/A2C/' + now.strftime("%Y%m%d-%H%M%S")
@@ -167,20 +167,6 @@ class A2CAgent:
 		entropy_loss = kls.categorical_crossentropy(logits, logits, from_logits=True)
 		# here signs are flipped because optimizer minimizes
 		return policy_loss - self.params['entropy']*entropy_loss
-
-def reward_20means(rewards_history):
-	i = 0
-	reward_sum = 0
-	rewards_array = np.array([])
-	for j in rewards_history:
-		i += 1
-		reward_sum += j
-		if i % 20 == 0:
-			reward_sum /= 20
-			rewards_array = np.append(rewards_array, [reward_sum])
-			reward_sum = 0
-
-	return rewards_array
 
 if __name__ == '__main__':
 	logging.getLogger().setLevel(logging.INFO)

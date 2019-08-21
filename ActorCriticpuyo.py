@@ -15,7 +15,7 @@ now = datetime.now()
 
 from LinearRegTF2 import LinearRegression
 load_weights = False
-number_of_updates = 32*600000
+number_of_updates = 32*1000000
 load_weights_update_num = 32*300000
 checkpoint_name = 'puyoAC_checkpoint'
 log_path = './logs/AC/' + now.strftime("%Y%m%d-%H%M%S")
@@ -156,20 +156,6 @@ class ACAgent:
 		policy_loss = weighted_sparse_ce(actions, logits, sample_weight=advantages)
 		# here signs are flipped because optimizer minimizes
 		return policy_loss
-
-def reward_20means(rewards_history):
-	i = 0
-	reward_sum = 0
-	rewards_array = np.array([])
-	for j in rewards_history:
-		i += 1
-		reward_sum += j
-		if i % 20 == 0:
-			reward_sum /= 20
-			rewards_array = np.append(rewards_array, [reward_sum])
-			reward_sum = 0
-
-	return rewards_array
 
 if __name__ == '__main__':
 	logging.getLogger().setLevel(logging.INFO)
