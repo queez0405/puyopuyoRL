@@ -12,6 +12,13 @@ Code runs on a single CPU and has been tested with
 2. Tensorflow 2.0
 3. [gym_puyopuyo](https://github.com/frostburn/gym_puyopuyo)
 4. Tensorboard
+## Usage
+```bash
+# Works only with Python 3.
+# e.g.
+python3 ActorCriticpuyo.py
+python3 A2Cpuyo.py
+```
 
 ## Result
 
