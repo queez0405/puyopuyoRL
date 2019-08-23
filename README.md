@@ -15,7 +15,7 @@ Code runs on a single CPU and has been tested with
 
 ## Result
 
-![Result](https://raw.githubusercontent.com/queez0405/queez0405.github.io/master/_posts/puyopuyo/state.JPG)
+![Result](https://raw.githubusercontent.com/queez0405/queez0405.github.io/master/_posts/puyopuyo/puyo_result.gif)
 
 ## Training Detail
 
